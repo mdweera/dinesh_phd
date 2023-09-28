@@ -49,7 +49,7 @@ class FaceDrawer:
 
 
 class Tools(FaceDrawer):
-    super().__init__()
+    # super().__init__()
 
     def face_to_tensor(self, face):
         return torch.tensor([i in face for i in self.sorted_keys]).float()
@@ -64,6 +64,10 @@ class Tools(FaceDrawer):
             parent_actions.append(self.sorted_keys.index(face_part))
         return parent_states, parent_actions
 
+    def plot_figure(loss_arr):
+        plt.figure(figsize=(10, 3))
+        plt.plot(loss_arr)
+        plt.yscale('log')
 
 class RewardCalc:
     @staticmethod

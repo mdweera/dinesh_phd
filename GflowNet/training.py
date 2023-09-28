@@ -6,7 +6,7 @@ from torch.distributions.categorical import Categorical
 from gflownet_simulator_tools import Tools, RewardCalc
 
 
-class FlowModel(nn.Module):
+class FlowModel(nn.Module, Tools):
     def __init__(self, num_hid):
         super().__init__()
         self.mlp = nn.Sequential(nn.Linear(6, num_hid), nn.LeakyReLU(), nn.Linear(num_hid, 6))
@@ -22,7 +22,8 @@ class FlowModel(nn.Module):
             # there is a parent without that part
             parent_states.append([i for i in state if i != face_part])
             # The action to get there is the corresponding index of that face part
-            parent_actions.append(self.sorted_keys.index(face_part))
+            tools = Tools()
+            parent_actions.append(tools.sorted_keys.index(face_part))
         return parent_states, parent_actions
 
 def main():
@@ -38,7 +39,7 @@ def main():
     update_freq = 4
 
     # provides a visual progress bar that shows the progress of the loop.
-    for episode in tqdm.tqdm(range(50000), ncols=40):
+    for episode in tqdm.tqdm(range(10000), ncols=40):
         state = []  # episode state initialize
         edge_flow_prediction = F_sa(gfn_tools.face_to_tensor(state))  # Prediction phase of F(s, a) with NN.
         for t in range(3):
@@ -58,7 +59,7 @@ def main():
             if t == 2:
                 # If we've built a complete face, we're done, so the reward is > 0
                 # (unless the face is invalid)
-                reward = F_sa.face_reward(new_state)
+                reward = rcalc.face_reward(new_state)
                 # and since there are no children to this state F(s,a) = 0 \forall a
                 edge_flow_prediction = torch.zeros(6)
             else:
@@ -77,6 +78,8 @@ def main():
             opt.step()
             opt.zero_grad()
             minibatch_loss = 0
+
+    Tools.plot_figure(losses)
 
 
 if __name__ == "__main__":
