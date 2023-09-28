@@ -64,6 +64,7 @@ class Tools(FaceDrawer):
             parent_actions.append(self.sorted_keys.index(face_part))
         return parent_states, parent_actions
 
+    @staticmethod
     def plot_figure(loss_arr):
         plt.figure(figsize=(10, 3))
         plt.plot(loss_arr)
