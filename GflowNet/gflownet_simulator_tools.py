@@ -69,6 +69,7 @@ class Tools(FaceDrawer):
         plt.figure(figsize=(10, 3))
         plt.plot(loss_arr)
         plt.yscale('log')
+        plt.show()
 
 class RewardCalc:
     @staticmethod
