@@ -31,7 +31,7 @@ class GflowNetFL(Tools):
 
 
 if __name__ == "__main__":
-    federated_learner = GflowNetFL(num_devices=1, number_global_itr=1, num_hidlayers=512, num_local_itr=900)
+    federated_learner = GflowNetFL(num_devices=3, number_global_itr=3, num_hidlayers=512, num_local_itr=100)
     all_losses = []
     for gobal_itr in range(federated_learner.number_global_itr):
         print(f"Global Iteration: {gobal_itr}")
@@ -49,9 +49,10 @@ if __name__ == "__main__":
         plt.ylabel("Loss")
         plt.title(f"Agent {0}, Global Iteration {0}")
         plt.show()
-        file_name = f'results/GFlowNet_without_FL_itr_{federated_learner.number_global_itr}.mat'
-        scipy.io.savemat(file_name, all_losses[0][0])
-    else:
+        data = {'all_losses': all_losses[0][0]}
+        file_name = f'results/GFlowNet_without_FL_itr_{federated_learner.num_local_itr}.mat'
+        scipy.io.savemat(file_name, data)
+    elif federated_learner.number_of_agents <= 5 and federated_learner.number_global_itr <= 5:
         # Create subplots for multiple agents and global iterations
         fig, axs = plt.subplots(federated_learner.number_of_agents, federated_learner.number_global_itr, figsize=(20, 10))
         for agent in range(federated_learner.number_of_agents):
@@ -63,5 +64,10 @@ if __name__ == "__main__":
 
         plt.tight_layout()
         plt.show()
+        data = {'all_losses': all_losses}
         file_name = f'results/GFlowNet_with_FL_local{federated_learner.num_local_itr}_global{federated_learner.number_global_itr}_agents{federated_learner.number_of_agents}.mat'
-        scipy.io.savemat(file_name, all_losses[0][0])
+        scipy.io.savemat(file_name, data)
+    else:
+        data = {'all_losses': all_losses}
+        file_name = f'results/GFlowNet_with_FL_local{federated_learner.num_local_itr}_global{federated_learner.number_global_itr}_agents{federated_learner.number_of_agents}.mat'
+        scipy.io.savemat(file_name, data)
