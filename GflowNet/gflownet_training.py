@@ -35,7 +35,7 @@ class FlowModel(nn.Module, Tools):
         losses = []
         sampled_faces = []
         minibatch_loss = 0
-        update_freq = 4
+        update_freq = 1
 
         # provides a visual progress bar that shows the progress of the loop.
         for episode in tqdm.tqdm(range(itr), ncols=40):
@@ -81,7 +81,7 @@ class FlowModel(nn.Module, Tools):
                 opt.zero_grad()
                 minibatch_loss = 0
 
-        return self
+        return self, losses
 
 #
 # if __name__ == "__main__":
