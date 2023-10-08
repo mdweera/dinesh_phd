@@ -31,7 +31,7 @@ class GflowNetFL(Tools):
 
 
 if __name__ == "__main__":
-    federated_learner = GflowNetFL(num_devices=3, number_global_itr=3, num_hidlayers=512, num_local_itr=100)
+    federated_learner = GflowNetFL(num_devices=3, number_global_itr=3, num_hidlayers=512, num_local_itr=1000)
     all_losses = []
     for gobal_itr in range(federated_learner.number_global_itr):
         print(f"Global Iteration: {gobal_itr}")
