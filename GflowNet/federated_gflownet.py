@@ -1,5 +1,6 @@
 from gflownet_training import FlowModel
 
+
 class GflowNetFL:
     def __init__(self, num_devices, num_epochs, num_hidlayers):
         self.no_of_devices = num_devices
@@ -11,7 +12,7 @@ class GflowNetFL:
     def train_local_models(self):
         for epoch in range(self.num_epochs):
             for i in range(self.no_of_devices):
-                self.local_models[i] = self.local_models[i].train(self.local_models[i].mlp, 10000)
+                self.local_models[i] = self.local_models[i].train(self.local_models[i], 10000)
         return self.local_models
 
     def aggregate_global_model(self):
@@ -31,4 +32,3 @@ if __name__ == "__main__":
         global_model = federated_learner.aggregate_global_model()
         for i in range(federated_learner.no_of_devices):
             federated_learner.local_models[i].mlp.load_state_dict(global_model.state_dict())
-

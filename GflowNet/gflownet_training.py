@@ -40,7 +40,8 @@ class FlowModel(nn.Module, Tools):
         # provides a visual progress bar that shows the progress of the loop.
         for episode in tqdm.tqdm(range(itr), ncols=40):
             state = []  # episode state initialize
-            edge_flow_prediction = gflowNet_nn_tools(gfn_tools.face_to_tensor(state))  # Prediction phase of F(s, a) with NN.
+            edge_flow_prediction = gflowNet_nn_tools(
+                gfn_tools.face_to_tensor(state))  # Prediction phase of F(s, a) with NN.
             for t in range(3):
                 # The policy is calculated by normalizing, and gives us the probability of each action
                 policy = edge_flow_prediction / edge_flow_prediction.sum()
@@ -71,7 +72,7 @@ class FlowModel(nn.Module, Tools):
                 flow_mismatch = (parent_edge_flow_preds.sum() - edge_flow_prediction.sum() - reward).pow(2)
                 minibatch_loss += flow_mismatch
                 state = new_state
-            sampled_faces.append(state)     # after 4 steps append face
+            sampled_faces.append(state)  # after 4 steps append face
 
             if episode % update_freq == 0:
                 losses.append(minibatch_loss.item())  # extracts the scalar value of minibatch_loss from tensor

@@ -71,6 +71,7 @@ class Tools(FaceDrawer):
         plt.yscale('log')
         plt.show()
 
+
 class RewardCalc:
     @staticmethod
     def has_overlap(face):
@@ -103,6 +104,7 @@ class RewardCalc:
 def main():
     face_drawer = FaceDrawer()
     face_drawer.draw_sample_faces()
+
 
 if __name__ == "__main__":
     main()
