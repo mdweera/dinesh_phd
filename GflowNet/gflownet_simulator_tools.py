@@ -73,6 +73,7 @@ class Tools(FaceDrawer):
 
 
 class RewardCalc:
+    eyebrows = ('left_eb_down', 'left_eb_up', 'right_eb_down', 'right_eb_up')
     @staticmethod
     def has_overlap(face):
         # Can't have two overlapping eyebrows!
@@ -88,9 +89,8 @@ class RewardCalc:
     def face_reward(self, face):
         if self.has_overlap(face):
             return 0
-        eyebrows = 'left_eb_down', 'left_eb_up', 'right_eb_down', 'right_eb_up'
         # Must have exactly two eyebrows
-        if sum([i in face for i in eyebrows]) != 2:
+        if sum([i in face for i in self.eyebrows]) != 2:
             return 0
         # We want twice as many happy faces as sad faces so here we give a reward of 2 for smiles
         if 'smile' in face:
@@ -99,6 +99,14 @@ class RewardCalc:
             return 1  # and a reward of 1 for frowns
         # If we reach this point, there's no mouth
         return 0
+
+    def is_valid_face(self, face):
+        # A valid face has exactly two eyebrows and no overlapping features
+        return sum([i in face for i in self.eyebrows]) == 2 and not self.has_overlap(face)
+
+    def is_smily_face(self, face):
+        # A smiley face has a smile and is a valid face
+        return 'smile' in face and self.is_valid_face(face)
 
 
 def main():

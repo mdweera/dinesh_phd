@@ -4,7 +4,7 @@ import tqdm
 
 from torch.distributions.categorical import Categorical
 from gflownet_simulator_tools import Tools, RewardCalc
-
+from support_tools import calc_face_categorical_output_arr
 
 class FlowModel(nn.Module, Tools):
     def __init__(self, num_hidlayers):
@@ -26,7 +26,7 @@ class FlowModel(nn.Module, Tools):
             parent_actions.append(tools.sorted_keys.index(face_part))
         return parent_states, parent_actions
 
-    def train(self, gflowNet_nn_tools, itr):
+    def train(self, gflowNet_nn_tools, itr, number_of_agents):
         # Initialize objects
         gfn_tools = Tools()
         rcalc = RewardCalc()
@@ -36,7 +36,7 @@ class FlowModel(nn.Module, Tools):
         sampled_faces = []
         minibatch_loss = 0
         update_freq = 1
-
+        tmp_results = []
         # provides a visual progress bar that shows the progress of the loop.
         for episode in tqdm.tqdm(range(itr), ncols=40):
             state = []  # episode state initialize
@@ -51,12 +51,10 @@ class FlowModel(nn.Module, Tools):
 
                 # Computing the loss
                 parent_states, parent_actions = gflowNet_nn_tools.face_parents(new_state)  # enumerate the parents
-                # And compute the edge flows F(s, a) of each parent
+                # Compute the edge flows F(s, a) of each parent
                 px = torch.stack([gfn_tools.face_to_tensor(p) for p in parent_states])
                 pa = torch.tensor(parent_actions).long()
                 parent_edge_flow_preds = gflowNet_nn_tools(px)[torch.arange(len(parent_states)), pa]
-                # Now we need to compute the reward and F(s, a) of the current state,
-                # which is currently `new_state`
                 if t == 2:
                     # If we've built a complete face, we're done, so the reward is > 0
                     # (unless the face is invalid)
@@ -80,9 +78,12 @@ class FlowModel(nn.Module, Tools):
                 opt.step()
                 opt.zero_grad()
                 minibatch_loss = 0
+            calc_interval = 100
 
-        return self, losses
+            if number_of_agents == 1:
+                if episode % calc_interval == 0:
+                    cat_result_arr = calc_face_categorical_output_arr(gflownet_nn_tools=gflowNet_nn_tools,
+                                                                      num_rounds=1000)
+                    tmp_results.append([cat_result_arr[0], cat_result_arr[1]])
+        return self, losses, tmp_results
 
-#
-# if __name__ == "__main__":
-#     main()
