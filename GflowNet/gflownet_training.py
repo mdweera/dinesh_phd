@@ -78,7 +78,7 @@ class FlowModel(nn.Module, Tools):
                 opt.step()
                 opt.zero_grad()
                 minibatch_loss = 0
-            calc_interval = 100
+            calc_interval = 300
 
             if number_of_agents == 1:
                 if episode % calc_interval == 0:
