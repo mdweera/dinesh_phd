@@ -21,6 +21,7 @@ def makedirs(path):
     else:
         print(path, "already exist!")
 
+
 class EBM(nn.Module):
     def __init__(self, net, mean=None):
         super().__init__()
@@ -106,14 +107,17 @@ if __name__ == "__main__":
     # Data fetch from MNIST dataset
     train_loader, val_loader, test_loader, args = utils_data.load_dataset(args)
     plot = lambda p, x: torchvision.utils.save_image(x.view(x.size(0), args.input_size[0],
-        args.input_size[1], args.input_size[2]), p, normalize=True, nrow=int(x.size(0) ** .5))
+                                                            args.input_size[1], args.input_size[2]), p, normalize=True,
+                                                     nrow=int(x.size(0) ** .5))
     print(f"It took {time.time() - before_load:.3f}s to load {args.data} dataset.")
+
 
     def preprocess(data):
         if args.dynamic_binarization:
             return torch.bernoulli(data)
         else:
             return data
+
 
     if args.down_sample:
         assert args.model.startswith("mlp-")
@@ -156,7 +160,7 @@ if __name__ == "__main__":
     while itr < args.n_iters:
         for x in train_loader:
             st = time.time()
-            x = preprocess(x[0].to(device))  #  -> (bs, 784)
+            x = preprocess(x[0].to(device))  # -> (bs, 784)
 
             if args.gradnorm > 0:
                 x.requires_grad_()
@@ -164,7 +168,7 @@ if __name__ == "__main__":
             update_success_rate = -1.
             assert "tb" in args.type
             train_loss, train_logZ = gfn.train(args.batch_size, scorer=lambda inp: model(inp).detach(),
-                   silent=itr % args.print_every != 0, data=x, back_ratio=args.back_ratio)
+                                               silent=itr % args.print_every != 0, data=x, back_ratio=args.back_ratio)
 
             if args.rand_k or args.lin_k or (args.K > 0):
                 if args.rand_k:
@@ -199,7 +203,7 @@ if __name__ == "__main__":
                 logp_real = model(x).squeeze()
                 if args.gradnorm > 0:
                     grad_ld = torch.autograd.grad(logp_real.sum(), x,
-                                      create_graph=True)[0].flatten(start_dim=1).norm(2, 1)
+                                                  create_graph=True)[0].flatten(start_dim=1).norm(2, 1)
                     grad_reg = (grad_ld ** 2. / 2.).mean()
                 else:
                     grad_reg = torch.tensor(0.).to(device)
@@ -215,8 +219,15 @@ if __name__ == "__main__":
 
             if itr % args.print_every == 0 or itr == args.n_iters - 1:
                 print("({:5d}) | ({:.3f}s/iter) |log p(real)={:.2e}, "
-                     "log p(fake)={:.2e}, diff={:.2e}, grad_reg={:.2e}, l2_reg={:.2e} update_rate={:.1f}".format(itr, st,
-                     logp_real.mean().item(), logp_fake.mean().item(), obj.item(), grad_reg.item(), l2_reg.item(), update_success_rate))
+                      "log p(fake)={:.2e}, diff={:.2e}, "
+                      "grad_reg={:.2e}, l2_reg={:.2e} update_rate={:.1f}".format(itr,
+                                                                                 st,
+                                                                                 logp_real.mean().item(),
+                                                                                 logp_fake.mean().item(),
+                                                                                 obj.item(),
+                                                                                 grad_reg.item(),
+                                                                                 l2_reg.item(),
+                                                                                 update_success_rate))
 
             if not os.path.exists(args.save_dir):
                 os.makedirs(args.save_dir)
@@ -229,16 +240,13 @@ if __name__ == "__main__":
                 print("GFN Test log-likelihood ({}) with {} samples: {}".format(itr, args.mc_num, gfn_test_ll.item()))
 
                 model.cpu()
-                output = {}
-                output['model'] = model.state_dict()
-                output['optimizer'] = optimizer.state_dict()
-                gfn_ckpt = {"model": gfn.model.state_dict(), "optimizer": gfn.optimizer.state_dict(), }
-                gfn_ckpt["logZ"] = gfn.logZ.detach().cpu()
+                output = {'model': model.state_dict(), 'optimizer': optimizer.state_dict()}
+                gfn_ckpt = {"model": gfn.model.state_dict(), "optimizer": gfn.optimizer.state_dict(),
+                            "logZ": gfn.logZ.detach().cpu()}
 
                 # Save checkpoint files in the results directory
                 torch.save(output, "{}/ckpt.pt".format(args.save_dir))
                 torch.save(gfn_ckpt, "{}/gfn_ckpt.pt".format(args.save_dir))
-
                 model.to(device)
 
             itr += 1
