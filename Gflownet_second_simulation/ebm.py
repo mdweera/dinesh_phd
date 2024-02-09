@@ -96,8 +96,7 @@ if __name__ == "__main__":
     device = torch.device("cpu") if args.device <= 0 else torch.device("cuda")
 
     args.device = device
-    args.save_dir = os.path.join(args.save_dir, "test")
-    makedirs(args.save_dir)
+    args.save_dir = "./results"
 
     print("Device:" + str(device))
     print("Args:" + str(args))
@@ -219,6 +218,9 @@ if __name__ == "__main__":
                      "log p(fake)={:.2e}, diff={:.2e}, grad_reg={:.2e}, l2_reg={:.2e} update_rate={:.1f}".format(itr, st,
                      logp_real.mean().item(), logp_fake.mean().item(), obj.item(), grad_reg.item(), l2_reg.item(), update_success_rate))
 
+            if not os.path.exists(args.save_dir):
+                os.makedirs(args.save_dir)
+
             if (itr + 1) % args.eval_every == 0:
                 model.eval()
                 print("GFN TEST")
@@ -227,12 +229,14 @@ if __name__ == "__main__":
                 print("GFN Test log-likelihood ({}) with {} samples: {}".format(itr, args.mc_num, gfn_test_ll.item()))
 
                 model.cpu()
-                d = {}
-                d['model'] = model.state_dict()
-                d['optimizer'] = optimizer.state_dict()
-                gfn_ckpt = {"model": gfn.model.state_dict(), "optimizer": gfn.optimizer.state_dict(),}
+                output = {}
+                output['model'] = model.state_dict()
+                output['optimizer'] = optimizer.state_dict()
+                gfn_ckpt = {"model": gfn.model.state_dict(), "optimizer": gfn.optimizer.state_dict(), }
                 gfn_ckpt["logZ"] = gfn.logZ.detach().cpu()
-                torch.save(d, "{}/ckpt.pt".format(args.save_dir))
+
+                # Save checkpoint files in the results directory
+                torch.save(output, "{}/ckpt.pt".format(args.save_dir))
                 torch.save(gfn_ckpt, "{}/gfn_ckpt.pt".format(args.save_dir))
 
                 model.to(device)
