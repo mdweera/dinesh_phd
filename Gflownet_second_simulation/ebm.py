@@ -233,8 +233,8 @@ if __name__ == "__main__":
                 os.makedirs(args.save_dir)
 
             if (itr + 1) % args.eval_every == 0:
+                print(f"Evaluate and Saving results for itr {itr}")
                 model.eval()
-                print("GFN TEST")
                 gfn.model.eval()
                 gfn_test_ll = gfn.evaluate(test_loader, preprocess, args.mc_num)
                 print("GFN Test log-likelihood ({}) with {} samples: {}".format(itr, args.mc_num, gfn_test_ll.item()))

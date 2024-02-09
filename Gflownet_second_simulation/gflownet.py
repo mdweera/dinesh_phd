@@ -148,6 +148,7 @@ class GFlowNet_Randf_TB:
         return batch_logp.mean()
 
     def evaluate(self, loader, preprocess, num, use_tqdm=False):
+        print("Evaluvating...")
         logps = []
         if use_tqdm:
             pbar = tqdm(loader)
