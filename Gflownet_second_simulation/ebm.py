@@ -90,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument("--zlr", type=float, default=1e-1)
     parser.add_argument("--momentum", "--mom", type=float, default=0.0)
     parser.add_argument("--gfn_weight_decay", "--gwd", type=float, default=0.0)
-    parser.add_argument('--mc_num', "--mcn", type=int, default=5)
+    parser.add_argument('--mc_num', "--mcn", type=int, default=1)
     args = parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = "{:}".format(args.device)
@@ -236,17 +236,33 @@ if __name__ == "__main__":
                 print(f"Evaluate and Saving results for itr {itr}")
                 model.eval()
                 gfn.model.eval()
-                gfn_test_ll = gfn.evaluate(test_loader, preprocess, args.mc_num)
-                print("GFN Test log-likelihood ({}) with {} samples: {}".format(itr, args.mc_num, gfn_test_ll.item()))
+                print(f"Eval mode set for two models.")
 
+                # Print information about evaluation
+                print("Evaluating...")
+                print(f"Number of samples for evaluation: {args.mc_num}")
+                print("Starting evaluation...: main")
+
+                # Evaluate the model
+                gfn_test_ll = gfn.evaluate(test_loader, preprocess, args.mc_num)
+                print("Evaluation completed!: main")
+
+                # Print the computed log-likelihood
+                print(f"GFN Test log-likelihood ({itr}) with {args.mc_num} samples: {gfn_test_ll.item()}")
+
+                # Switch the model back to the CPU
                 model.cpu()
+
+                # Save the checkpoint files
+                print("Saving checkpoint files...")
                 output = {'model': model.state_dict(), 'optimizer': optimizer.state_dict()}
                 gfn_ckpt = {"model": gfn.model.state_dict(), "optimizer": gfn.optimizer.state_dict(),
                             "logZ": gfn.logZ.detach().cpu()}
-
-                # Save checkpoint files in the results directory
                 torch.save(output, "{}/ckpt.pt".format(args.save_dir))
                 torch.save(gfn_ckpt, "{}/gfn_ckpt.pt".format(args.save_dir))
+                print("Checkpoint files saved.")
+
+                # Move the model back to the device
                 model.to(device)
 
             itr += 1

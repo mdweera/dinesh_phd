@@ -148,7 +148,7 @@ class GFlowNet_Randf_TB:
         return batch_logp.mean()
 
     def evaluate(self, loader, preprocess, num, use_tqdm=False):
-        print("Evaluvating...")
+        print("Evaluating...")
         logps = []
         if use_tqdm:
             pbar = tqdm(loader)
@@ -156,16 +156,27 @@ class GFlowNet_Randf_TB:
             pbar = loader
 
         if hasattr(pbar, "set_description"):
+            print("Setting description for pbar ...")
             pbar.set_description("Calculating likelihood")
+        print("Set description for pbar ...")
         self.model.eval()
-        for x, _ in pbar:
-            x = preprocess(x.to(self.device))
-            logp = self.cal_logp(x, num)
-            logps.append(logp.reshape(-1))
-            if hasattr(pbar, "set_postfix"):
-                pbar.set_postfix({"logp": f"{torch.cat(logps).mean().item():.2f}"})
+        print("Set model eval ...")
+        self.model.eval()
 
-        return torch.cat(logps).mean()
+        with torch.no_grad():
+            for i, (x, _) in enumerate(pbar):
+                print(f"Processing batch {i + 1}/{len(pbar)}")
+                x = preprocess(x.to(self.device))
+                logp = self.cal_logp(x, num)
+                logps.append(logp.reshape(-1))
+
+                if hasattr(pbar, "set_postfix"):
+                    pbar.set_postfix({"log_likelihood": f"{torch.mean(torch.cat(logps)).item():.2f}"})
+
+        # Compute and return the mean log-likelihood
+        mean_log_likelihood = torch.mean(torch.cat(logps))
+        print(f"Mean log-likelihood: {mean_log_likelihood:.2f}")
+        return mean_log_likelihood
 
     def train(self, batch_size, scorer, silent=False, data=None, back_ratio=0.,): #mle_coef=0., kl_coef=0., kl2_coef=0., pdb=False):
         # scorer: x -> logp
